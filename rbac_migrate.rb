@@ -1,19 +1,14 @@
+require 'open-uri'
 require 'net/http'
 require 'uri'
 require 'json'
 require 'pry'
 
+# TODO the open().read is depricated and needs replacing
 def get_rbac(token, hostname, filename)
-  puts "getting"
-  puts token
-  puts hostname
-  puts filename
-
-  response = open("https://localhost:4433/rbac-api/v1/roles?token=0UYhSXdTV0VEQC_22WA8fxtJ_swYbXrzp1Us2idrKz8w", {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
-
+  response = open("https://" + hostname.strip + ":4433/rbac-api/v1/roles?token=#{token}", {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
   json = JSON.parse(response)
-
-  File.open("rbac_groups.json","w") do |f|
+  File.open(filename,"w") do |f|
     f.write(json.to_json)
   end
 end
@@ -42,7 +37,7 @@ token = gets
 puts "Enter the hostname (e.g. localhost): "
 hostname = gets
 
-puts "Enter source file: "
+puts "Enter target/source file: "
 filename = gets
 
 puts "Are we getting the RBAC config or pushing it? [get|push]"
