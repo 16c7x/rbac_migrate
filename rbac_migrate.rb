@@ -4,31 +4,32 @@ require 'uri'
 require 'json'
 require 'pry'
 
-# TODO the open().read is depricated and needs replacing
 def get_rbac(token, hostname, filename)
   response = open("https://" + hostname.strip + ":4433/rbac-api/v1/roles?token=#{token}", {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
   json = JSON.parse(response)
-  File.open(filename,"w") do |f|
+  File.open(filename.strip,"w") do |f|
     f.write(json.to_json)
   end
 end
 
 def push_rbac(token, hostname, filename)
-  puts "putting"
+  uri = URI.parse("https://" + hostname.strip + ":4433/rbac-api/v1/roles?token=#{token}")
 
-  file = File.read('./rbac_groups.json')
+  file = File.read(filename.strip)
   data_hash = JSON.parse(file)
-  payload = data_hash[5]
-
-  uri = URI.parse("https://localhost:4433/rbac-api/v1/roles?token=0UYhSXdTV0VEQC_22WA8fxtJ_swYbXrzp1Us2idrKz8w")
 
   header = {'Content-Type': 'application/json'}
 
+  # Create the HTTP objects
   http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   request = Net::HTTP::Post.new(uri.request_uri, header)
-  request.body = payload.to_json
+  request.body = data_hash[5].to_json
 
+  # Send the request
   response = http.request(request)
+
 end
 
 puts "Enter the API token: "
@@ -37,7 +38,7 @@ token = gets
 puts "Enter the hostname (e.g. localhost): "
 hostname = gets
 
-puts "Enter target/source file: "
+puts "Enter target/source file (.json): "
 filename = gets
 
 puts "Are we getting the RBAC config or pushing it? [get|push]"
