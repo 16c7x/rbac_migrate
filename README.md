@@ -2,7 +2,7 @@
 
 ## What problem does this solve
 
-You may have built a new Puppet server and want to copy over your RBAC roles from your old RBAC server.
+You may have built a new Puppet server and want to copy over your RBAC roles from your old Puppet server.
 
 ## How does it solve it
 
