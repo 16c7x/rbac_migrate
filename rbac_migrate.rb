@@ -1,12 +1,19 @@
-require 'open-uri'
 require 'net/http'
 require 'uri'
 require 'json'
 require 'pry'
 
 def get_rbac(token, hostname, filename)
-  response = open("https://" + hostname.strip + ":4433/rbac-api/v1/roles?token=#{token}", {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
-  json = JSON.parse(response)
+  uri = URI.parse("https://" + hostname.strip + ":4433/rbac-api/v1/roles?token=#{token}")
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+  request = Net::HTTP::Get.new(uri.request_uri)
+
+  response = http.request(request)
+
+  json = JSON.parse(response.body)
   File.open(filename.strip,"w") do |f|
     f.write(json.to_json)
   end
@@ -26,7 +33,6 @@ def push_rbac(token, hostname, filename)
   header = {'Content-Type': 'application/json'}
 
   # Create the HTTP objects
-  
   for index in 0 ... data_hash.size
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
