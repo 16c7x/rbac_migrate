@@ -1,7 +1,7 @@
 require 'net/http'
 require 'uri'
 require 'json'
-require 'pry'
+#require 'pry' # For debugging 
 
 def get_rbac(token, hostname, filename)
   uri = URI.parse("https://" + hostname.strip + ":4433/rbac-api/v1/roles?token=#{token}")
@@ -23,6 +23,7 @@ def push_rbac(token, hostname, filename)
   removes = ['Administrators', 'Operators', 'Viewers', 'Code Deployers', 'Project Deployers']
   
   uri = URI.parse("https://" + hostname.strip + ":4433/rbac-api/v1/roles?token=#{token}")
+  header = {'Content-Type': 'application/json'}
 
   file = File.read(filename.strip)
   data_hash = JSON.parse(file, {:symbolize_names => true})
@@ -32,8 +33,13 @@ def push_rbac(token, hostname, filename)
 
   header = {'Content-Type': 'application/json'}
 
-  # Create the HTTP objects
+  # Create the HTTP objects  
   for index in 0 ... data_hash.size
+
+    # Blank the user and group id's to avoid conflict
+    data_hash[index][:user_ids]=[]
+    data_hash[index][:group_ids]=[]
+
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -42,7 +48,7 @@ def push_rbac(token, hostname, filename)
 
     # Send the request
     response = http.request(request)
-    puts response
+    puts "RBAC group #{data_hash[index][:display_name]} status #{response}"
   end
 end
 
